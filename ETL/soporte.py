@@ -278,7 +278,7 @@ class ETL_energia:
 
                 try: 
                     mycursor.execute(f"""
-                            INSERT INTO nacional_renovable_no_renovable (value, percentage, energy_type, comunidades_id_location, fechas_id_date) 
+                            INSERT INTO comunidades_renovable_no_renovable (value, percentage, energy_type, comunidades_id_location, fechas_id_date1) 
                             VALUES ({fila["value"]}, {fila["percentage"]}, "{fila["energy_type"]}", "{fila["id_location"]}", {id_date});
                             """)
                     cnx.commit() 

@@ -54,6 +54,6 @@ else:
 
     df.load_comunidades(df_ccaa)
 
-    df.export(df_energia, "prueba_nacional")
+    df.export(df_energia, "../data/energias_años")
 
-    df.export(df_ccaa, "prueba_ccaa")
+    df.export(df_ccaa, "../data/energias_comunidades")
