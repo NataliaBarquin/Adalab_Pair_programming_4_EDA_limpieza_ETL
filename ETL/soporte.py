@@ -14,7 +14,7 @@ class Creacion_bbdd:
     def crear_bbdd(self):
 
         mydb = mysql.connector.connect(
-        host="localhost",
+        host="127.0.0.1",
         user="root",
         password= f"{self.password}",
         auth_plugin = 'mysql_native_password') 
@@ -33,7 +33,7 @@ class Creacion_bbdd:
 
     def crear_tablas(self):
         
-        cnx = mysql.connector.connect(host="localhost", user="root", password= f"{self.password}", database=f"{self.db_name}", auth_plugin = 'mysql_native_password') 
+        cnx = mysql.connector.connect(host="127.0.0.1", user="root", password= f"{self.password}", database=f"{self.db_name}", auth_plugin = 'mysql_native_password') 
 
         mycursor = cnx.cursor()
 
@@ -210,18 +210,18 @@ class ETL_energia:
     
     def load_fechas(self, dataframe = 'df_energia'):
 
-        fechas = pd.Series(dataframe["date"].unique())
+        fechas = pd.DataFrame(dataframe["date"].unique())
 
         for fila in fechas:
 
-            cnx = mysql.connector.connect(host="localhost", user="root", password=f"{self.password}", database=f"{self.db_name}", auth_plugin = 'mysql_native_password') 
+            cnx = mysql.connector.connect(host="127.0.0.1", user="root", password=f"{self.password}", database=f"{self.db_name}", auth_plugin = 'mysql_native_password') 
 
             mycursor = cnx.cursor()
 
             try: 
                 mycursor.execute(f"""
                             INSERT INTO fechas (date)
-                            VALUES ('{fila}')""")
+                            VALUES ('{fila[0]}')""")
                 cnx.commit() 
 
             except mysql.connector.Error as err:
