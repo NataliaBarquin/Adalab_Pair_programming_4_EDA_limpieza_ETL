@@ -38,7 +38,7 @@ if respuesta.lower() == "no":
 
 else:
 
-    df = sp.ETL_energia(2018, 2019, "AlumnaAdalab", "energy")
+    df = sp.ETL_energia(2017, 2018, "AlumnaAdalab", "energy")
 
     df_energia = df.energy_spain()
 
@@ -47,13 +47,13 @@ else:
     df.clean(df_energia)
     
     df.clean(df_ccaa)
-
+    
     df.load_fechas(df_energia)
 
     df.load_nacional(df_energia)
 
     df.load_comunidades(df_ccaa)
 
-    df.export(df_energia, "../data/energias_años")
+    df.export(df_energia, "data/energias_años_conpy")
 
-    df.export(df_ccaa, "../data/energias_comunidades")
+    df.export(df_ccaa, "data/energias_comunidades_conpy")
