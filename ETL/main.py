@@ -10,7 +10,7 @@ respuesta = input("¿Tiene ya la base de datos creada?")
 
 if respuesta.lower() == "no":
 
-    db = sp.Creacion_bbdd("AlumnaAdalab", "energy2")
+    db = sp.Creacion_bbdd("AlumnaAdalab", "energy")
 
     db.crear_bbdd()
 
@@ -48,11 +48,11 @@ else:
     
     df.clean(df_ccaa)
 
-    df.load_fechas()
+    df.load_fechas(df_energia)
 
-    df.load_nacional()
+    df.load_nacional(df_energia)
 
-    df.load_comunidades()
+    df.load_comunidades(df_ccaa)
 
     df.export(df_energia, "prueba_nacional")
 

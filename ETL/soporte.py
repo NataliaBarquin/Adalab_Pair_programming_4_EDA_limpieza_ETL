@@ -14,7 +14,7 @@ class Creacion_bbdd:
     def crear_bbdd(self):
 
         mydb = mysql.connector.connect(
-        host="127.0.0.1",
+        host="localhost",
         user="root",
         password= f"{self.password}",
         auth_plugin = 'mysql_native_password') 
@@ -33,7 +33,7 @@ class Creacion_bbdd:
 
     def crear_tablas(self):
         
-        cnx = mysql.connector.connect(host="127.0.0.1", user="root", password= f"{self.password}", database=f"{self.db_name}", auth_plugin = 'mysql_native_password') 
+        cnx = mysql.connector.connect(host="localhost", user="root", password= f"{self.password}", database=f"{self.db_name}", auth_plugin = 'mysql_native_password') 
 
         mycursor = cnx.cursor()
 
@@ -208,35 +208,37 @@ class ETL_energia:
         
         return dataframe
     
-    def load_fechas(self, dataframe = 'df_energia'):
+    def load_fechas(self, dataframe):
 
-        fechas = pd.DataFrame(dataframe["date"].unique())
+        fechas = pd.Series(dataframe["date"].unique())
 
         for fila in fechas:
 
-            cnx = mysql.connector.connect(host="127.0.0.1", user="root", password=f"{self.password}", database=f"{self.db_name}", auth_plugin = 'mysql_native_password') 
+            cnx = mysql.connector.connect(host="localhost", user="root", password=f"{self.password}", database=f"{self.db_name}", auth_plugin = 'mysql_native_password') 
 
             mycursor = cnx.cursor()
 
             try: 
                 mycursor.execute(f"""
-                            INSERT INTO fechas (date)
-                            VALUES ('{fila[0]}')""")
+                            #INSERT INTO fechas (date)
+                            #VALUES ('{fila}')""")
                 cnx.commit() 
 
             except mysql.connector.Error as err:
-                print(err)
-                print("Error Code:", err.errno)
-                print("SQLSTATE", err.sqlstate)
-                print("Message", err.msg)
+                        print(err)
+                        print("Error Code:", err.errno)
+                        print("SQLSTATE", err.sqlstate)
+                        print("Message", err.msg)
 
 
-    def load_nacional(self, dataframe = 'df_energia'):
+    
+
+    def load_nacional(self, dataframe):
 
         for indice, fila in dataframe.iterrows():
     
             cnx = mysql.connector.connect(user='root', password=f'{self.password}',
-                                    host='127.0.0.1', database=f"{self.db_name}",  auth_plugin = 'mysql_native_password')
+                                    host='localhost', database=f"{self.db_name}",  auth_plugin = 'mysql_native_password')
             mycursor = cnx.cursor()
 
             try: 
@@ -261,12 +263,12 @@ class ETL_energia:
 
                 return "Sorry, no tenemos esa fecha en la BBDD y por lo tanto no te podemos dar su id. "
     
-    def load_comunidades(self, dataframe = 'df_ccaa'):
+    def load_comunidades(self, dataframe):
 
         for indice, fila in dataframe.iterrows():
     
             cnx = mysql.connector.connect(user='root', password=f'{self.password}',
-                                    host='127.0.0.1', database=f"{self.db_name}",  auth_plugin = 'mysql_native_password')
+                                    host='localhost', database=f"{self.db_name}",  auth_plugin = 'mysql_native_password')
             mycursor = cnx.cursor()
 
             try: 
