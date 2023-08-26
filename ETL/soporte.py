@@ -87,8 +87,6 @@ class Creacion_bbdd:
                 ON UPDATE NO ACTION)
                 ENGINE = InnoDB;""")
             
-            cnx.commit() 
-
         except mysql.connector.Error as err:
             print(err)
             print("Error Code:", err.errno)
