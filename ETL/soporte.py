@@ -25,12 +25,13 @@ class Creacion_bbdd:
         try:
             mycursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.db_name};")
             print(mycursor)
+            
         except mysql.connector.Error as err:
             print(err)
             print("Error Code:", err.errno)
             print("SQLSTATE", err.sqlstate)
             print("Message", err.msg)
-
+            
     def crear_tablas(self):
         
         cnx = mysql.connector.connect(host="localhost", user="root", password= f"{self.password}", database=f"{self.db_name}", auth_plugin = 'mysql_native_password') 
@@ -38,19 +39,19 @@ class Creacion_bbdd:
         mycursor = cnx.cursor()
 
         try: 
-            mycursor.execute(f""" CREATE TABLE IF NOT EXISTS `{self.db_name}`.`fechas` (
+            mycursor.execute(""" CREATE TABLE IF NOT EXISTS `fechas` (
                 `id_date` INT NOT NULL AUTO_INCREMENT,
                 `date` DATE NOT NULL,
                 PRIMARY KEY (`id_date`))
                 ENGINE = InnoDB;
                 
-                CREATE TABLE IF NOT EXISTS `{self.db_name}`.`comunidades` (
+                CREATE TABLE IF NOT EXISTS `comunidades` (
                 `id_location` INT NOT NULL,
                 `location` VARCHAR(45) NOT NULL,
                 PRIMARY KEY (`id_location`))
                 ENGINE = InnoDB;
                 
-                CREATE TABLE IF NOT EXISTS `{self.db_name}`.`comunidades_renovable_no_renovable` (
+                CREATE TABLE IF NOT EXISTS `comunidades_renovable_no_renovable` (
                 `id_comunidades_renovable_no_renovable` INT NOT NULL AUTO_INCREMENT,
                 `value` FLOAT NULL,
                 `percentage` FLOAT NULL,
@@ -58,31 +59,28 @@ class Creacion_bbdd:
                 `comunidades_id_location` INT NOT NULL,
                 `fechas_id_date1` INT NOT NULL,
                 PRIMARY KEY (`id_comunidades_renovable_no_renovable`),
-                INDEX `fk_comunidades_renovable_no_renovable_comunidades1_idx` (`comunidades_id_location` ASC) VISIBLE,
-                INDEX `fk_comunidades_renovable_no_renovable_fechas1_idx` (`fechas_id_date1` ASC) VISIBLE,
                 CONSTRAINT `fk_comunidades_renovable_no_renovable_comunidades1`
                 FOREIGN KEY (`comunidades_id_location`)
-                REFERENCES `{self.db_name}`.`comunidades` (`id_location`)
+                REFERENCES `energy`.`comunidades` (`id_location`)
                 ON DELETE NO ACTION
                 ON UPDATE NO ACTION,
                 CONSTRAINT `fk_comunidades_renovable_no_renovable_fechas1`
                 FOREIGN KEY (`fechas_id_date1`)
-                REFERENCES `{self.db_name}`.`fechas` (`id_date`)
+                REFERENCES `fechas` (`id_date`)
                 ON DELETE NO ACTION
                 ON UPDATE NO ACTION)
                 ENGINE = InnoDB;
                 
-                CREATE TABLE IF NOT EXISTS `{self.db_name}`.`nacional_renovable_no_renovable` (
+                CREATE TABLE IF NOT EXISTS `nacional_renovable_no_renovable` (
                 `idnacional_renovable_no_renovable` INT NOT NULL AUTO_INCREMENT,
                 `value` FLOAT NULL,
                 `percentage` FLOAT NULL,
                 `energy_type` VARCHAR(45) NULL,
                 `fechas_id_date` INT NOT NULL,
                 PRIMARY KEY (`idnacional_renovable_no_renovable`),
-                INDEX `fk_nacional_renovable_no_renovable_fechas1_idx` (`fechas_id_date` ASC) VISIBLE,
                 CONSTRAINT `fk_nacional_renovable_no_renovable_fechas1`
                 FOREIGN KEY (`fechas_id_date`)
-                REFERENCES `{self.db_name}`.`fechas` (`id_date`)
+                REFERENCES `fechas` (`id_date`)
                 ON DELETE NO ACTION
                 ON UPDATE NO ACTION)
                 ENGINE = InnoDB;""")
@@ -92,9 +90,9 @@ class Creacion_bbdd:
             print("Error Code:", err.errno)
             print("SQLSTATE", err.sqlstate)
             print("Message", err.msg)
-
-#creacion de tabla comunidades:
-
+        
+        #creacion de tabla comunidades:
+        
         cod_location = {"Ceuta": 8744, "Melilla": 8745, "Andalucía": 4, "Aragón": 5, "Cantabria": 6, "Castilla - La Mancha": 7, "Castilla y León": 8, "Cataluña": 9, "País Vasco": 10,
                             "Principado de Asturias": 11, "Comunidad de Madrid": 13, "Comunidad Foral de Navarra": 14, "Comunitat Valenciana": 15, "Extremadura": 16, "Galicia": 17,
                             "Illes Balears": 8743, "Canarias": 8742, "Región de Murcia": 21, "La Rioja": 20}
@@ -102,10 +100,16 @@ class Creacion_bbdd:
         df_localidades = pd.DataFrame(pd.Series(cod_location)).reset_index()
 
         for indice, fila in df_localidades.iterrows():
+            
+            cnx = mysql.connector.connect(host="localhost", user="root", password= f"{self.password}", database=f"{self.db_name}", auth_plugin = 'mysql_native_password') 
+
+            mycursor = cnx.cursor()
+
 
             try:
                 mycursor.execute(f"""INSERT INTO comunidades (id_location, location) 
                         VALUES ("{fila[0]}", "{fila["index"]}");""")
+                cnx.commit()
                 print(mycursor)
 
             except mysql.connector.Error as err:
@@ -208,84 +212,100 @@ class ETL_energia:
     
     def load_fechas(self, dataframe):
 
-        fechas = pd.Series(dataframe["date"].unique())
+        fechas = pd.DataFrame(dataframe["date"].unique())
 
-        for fila in fechas:
+        for fila in fechas[0]:
 
             cnx = mysql.connector.connect(host="localhost", user="root", password=f"{self.password}", database=f"{self.db_name}", auth_plugin = 'mysql_native_password') 
 
             mycursor = cnx.cursor()
+            
+            mycursor.execute(f"""SELECT date FROM fechas WHERE date = "{fila}";""")
+            
+            existe_fecha = mycursor.fetchone()
+            
+            if not existe_fecha:
 
-            try: 
-                mycursor.execute(f"""
-                            #INSERT INTO fechas (date)
-                            #VALUES ('{fila}')""")
-                cnx.commit() 
+                try: 
+                    mycursor.execute(f"""
+                                INSERT INTO fechas (date)
+                                VALUES ('{fila}')""")
+                    cnx.commit() 
 
-            except mysql.connector.Error as err:
-                        print(err)
-                        print("Error Code:", err.errno)
-                        print("SQLSTATE", err.sqlstate)
-                        print("Message", err.msg)
+                except mysql.connector.Error as err:
+                    print(err)
+                    print("Error Code:", err.errno)
+                    print("SQLSTATE", err.sqlstate)
+                    print("Message", err.msg)
 
-
-    
 
     def load_nacional(self, dataframe):
 
         for indice, fila in dataframe.iterrows():
     
             cnx = mysql.connector.connect(user='root', password=f'{self.password}',
-                                    host='localhost', database=f"{self.db_name}",  auth_plugin = 'mysql_native_password')
+                                    host='127.0.0.1', database=f"{self.db_name}",  auth_plugin = 'mysql_native_password')
             mycursor = cnx.cursor()
 
             try: 
                 mycursor.execute(f"""SELECT id_date
                                 FROM fechas WHERE date = '{fila["date"]}'""")
                 id_date = mycursor.fetchall()[0][0]
+                
+                mycursor.execute(f"""SELECT fechas_id_date FROM nacional_renovable_no_renovable WHERE fechas_id_date = "{id_date}";""")
+            
+                existe_fecha = mycursor.fetchone()
+                
+                if not existe_fecha:
 
-                try: 
-                    mycursor.execute(f"""
-                            INSERT INTO nacional_renovable_no_renovable (value, percentage, energy_type, fechas_id_date) 
-                            VALUES ({fila["value"]}, {fila["percentage"]}, "{fila["energy_type"]}", {id_date});
-                            """)
-                    cnx.commit() 
+                    try: 
+                        mycursor.execute(f"""
+                                INSERT INTO nacional_renovable_no_renovable (value, percentage, energy_type, fechas_id_date) 
+                                VALUES ({fila["value"]}, {fila["percentage"]}, "{fila["energy_type"]}", {id_date});
+                                """)
+                        cnx.commit() 
 
-                except mysql.connector.Error as err:
-                    print(err)
-                    print("Error Code:", err.errno)
-                    print("SQLSTATE", err.sqlstate)
-                    print("Message", err.msg)
+                    except mysql.connector.Error as err:
+                        print(err)
+                        print("Error Code:", err.errno)
+                        print("SQLSTATE", err.sqlstate)
+                        print("Message", err.msg)
 
             except: 
 
-                return "Sorry, no tenemos esa fecha en la BBDD y por lo tanto no te podemos dar su id. "
+                return "Sorry, no tenemos esa fecha en la BBDD y por lo tanto no te podemos dar su id."
     
     def load_comunidades(self, dataframe):
 
         for indice, fila in dataframe.iterrows():
     
             cnx = mysql.connector.connect(user='root', password=f'{self.password}',
-                                    host='localhost', database=f"{self.db_name}",  auth_plugin = 'mysql_native_password')
+                                    host='127.0.0.1', database=f"{self.db_name}",  auth_plugin = 'mysql_native_password')
             mycursor = cnx.cursor()
 
             try: 
                 mycursor.execute(f"""SELECT id_date
                                 FROM fechas WHERE date = '{fila["date"]}'""")
                 id_date = mycursor.fetchall()[0][0]
+                
+                mycursor.execute(f"""SELECT fechas_id_date FROM comunidades_renovable_no_renovable WHERE fechas_id_date1 = "{id_date}";""")
+            
+                existe_fecha = mycursor.fetchone()
+                
+                if not existe_fecha:
 
-                try: 
-                    mycursor.execute(f"""
-                            INSERT INTO comunidades_renovable_no_renovable (value, percentage, energy_type, comunidades_id_location, fechas_id_date1) 
-                            VALUES ({fila["value"]}, {fila["percentage"]}, "{fila["energy_type"]}", "{fila["id_location"]}", {id_date});
-                            """)
-                    cnx.commit() 
+                    try: 
+                        mycursor.execute(f"""
+                                INSERT INTO comunidades_renovable_no_renovable (value, percentage, energy_type, comunidades_id_location, fechas_id_date1) 
+                                VALUES ({fila["value"]}, {fila["percentage"]}, "{fila["energy_type"]}", "{fila["id_location"]}", {id_date});
+                                """)
+                        cnx.commit() 
 
-                except mysql.connector.Error as err:
-                    print(err)
-                    print("Error Code:", err.errno)
-                    print("SQLSTATE", err.sqlstate)
-                    print("Message", err.msg)
+                    except mysql.connector.Error as err:
+                        print(err)
+                        print("Error Code:", err.errno)
+                        print("SQLSTATE", err.sqlstate)
+                        print("Message", err.msg)
     
             except: 
 
