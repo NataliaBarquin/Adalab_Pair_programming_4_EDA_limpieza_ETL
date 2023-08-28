@@ -278,18 +278,20 @@ class ETL_energia:
     def load_comunidades(self, dataframe):
 
         for indice, fila in dataframe.iterrows():
-    
-            cnx = mysql.connector.connect(user='root', password=f'{self.password}',
-                                    host='127.0.0.1', database=f"{self.db_name}",  auth_plugin = 'mysql_native_password')
-            mycursor = cnx.cursor()
-
-            try: 
-                mycursor.execute(f"""SELECT id_date
-                                FROM fechas WHERE date = '{fila["date"]}'""")
-                id_date = mycursor.fetchall()[0][0]
-                
-                mycursor.execute(f"""SELECT fechas_id_date FROM comunidades_renovable_no_renovable WHERE fechas_id_date1 = "{id_date}";""")
             
+            cnx = mysql.connector.connect(user='root', password=f'{self.password}',
+                            host='127.0.0.1', database=f"{self.db_name}",  auth_plugin = 'mysql_native_password')
+            mycursor = cnx.cursor()
+            
+            try:
+
+                mycursor.execute(f"""SELECT id_date FROM fechas WHERE date = '{fila["date"]}'""")
+                id_date = mycursor.fetchall()[0][0]
+        
+                mycursor.execute(f"""SELECT fechas_id_date1, comunidades_id_location 
+                                FROM comunidades_renovable_no_renovable 
+                                WHERE fechas_id_date1 = {id_date} and comunidades_id_location = {fila["id_location"]};""")
+
                 existe_fecha = mycursor.fetchone()
                 
                 if not existe_fecha:

@@ -49,8 +49,8 @@ if respuesta.lower() == "no":
 
 else:
 
-    start_year = input("¿Desde qué año quieres exportar?")
-    end_year = input("¿Hasta qué año quieres exportar?")
+    start_year = int(input("¿Desde qué año quieres exportar?"))
+    end_year = int(input("¿Hasta qué año quieres exportar?"))
 
     df = sp.ETL_energia(start_year, end_year, "AlumnaAdalab", "energy")
 
